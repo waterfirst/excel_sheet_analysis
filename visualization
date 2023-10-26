@@ -1,0 +1,198 @@
+library(readxl)
+library(tidyverse)
+library(writexl)
+
+library(showtext) # 한글
+library(viridis) #특정 color 묶음
+library(patchwork)
+showtext_auto()
+
+
+# read_excel(
+#   "data/students.xlsx",
+#   col_names = c("student_id", "full_name", "favourite_food", "meal_plan", "age"),
+#   skip = 1,
+#   na = c("", "N/A"),
+#   col_types = c("numeric", "text", "text", "text", "numeric")
+
+dir()
+getwd()
+setwd("D:/Private_Documents/!!2023/fab/")
+
+x$sheet <- excel_sheets("12.3_9E_LCF_SPM.xlsx")
+myCols <- as.character(read_excel("12.3_9E_LCF_SPM.xlsx", n_max = 1, col_names = FALSE))
+myCols[1:2] = c("angle", "no")
+lcf <- read_excel("12.3_9E_LCF_SPM.xlsx", sheet = "19_B01_LCF_SPM", range = "A3:H53", col_names = myCols)
+  
+
+
+head(lcf)
+
+files <- map(paths, readxl::read_excel)
+length(files)
+
+library(purrr)
+
+file <- structure(list(file = c("12.3_9E_LCF_SPM.xlsx"
+), sheet = excel_sheets("12.3_9E_LCF_SPM.xlsx")))
+
+length(file$sheet)
+
+lcf <- 
+  
+  map2(file$file, file$sheet, ~ read_excel(path = .x, sheet = .y, range = "A3:H53", col_names = myCols)) %>% 
+  list_rbind(names_to = "number") 
+
+
+lcf %>% 
+  mutate(panel = rep(file$sheet, each = 51)) %>% 
+  mutate(slot = as.factor(parse_number(panel))) %>% 
+  mutate(cell = substr(panel, 4,6)) %>% 
+  
+  mutate(structure = case_when(
+    str_detect(panel, "LCF") ~ "LCF",
+    str_detect(panel, "SPM") ~ "SPM",
+    TRUE ~ "public"
+  )) %>% 
+  mutate(position = case_when(
+    str_detect(panel, "LEFT") ~ "left",
+    str_detect(panel, "RIGHT") ~ "right",
+    TRUE ~ "center"
+  )) %>% 
+  mutate(glass = paste0(substr(panel, 1,6),"_", position))   -> lcf_df
+
+head(lcf_df)
+
+
+lcf_df %>% 
+  filter(number != c(1,2,3)) %>% 
+  filter(structure =="LCF") %>% 
+  select(angle, glass, Y)  %>% 
+  pivot_wider(names_from = glass, values_from = Y) %>% 
+  mutate(across(c(2:(ncol(.))), ~.x/.x[1]*100)) %>% 
+  pivot_longer(-1, names_to = "glass", values_to = "transmittance") %>% 
+  mutate(position =substr(glass, 8, 13),
+         cell= substr(glass, 1, 6)) %>% 
+  ggplot(aes(x=angle, y=transmittance, col=glass, shape = position)) +
+  geom_point()+geom_line()+
+  facet_wrap(~glass,)+
+  theme_minimal()+
+  theme(legend.position = "none")
+
+lcf_df %>% 
+  filter(number != c(1,2,3)) %>% 
+  filter(structure =="SPM") %>% 
+  select(angle, glass, Y)  %>% 
+  pivot_wider(names_from = glass, values_from = Y) %>% 
+  mutate(across(c(2:(ncol(.))), ~.x/.x[1]*100)) %>% 
+  pivot_longer(-1, names_to = "glass", values_to = "transmittance") %>% 
+  mutate(position =substr(glass, 8, 13),
+         cell= substr(glass, 1, 6)) %>% 
+  ggplot(aes(x=angle, y=transmittance, col=glass, shape = position)) +
+  geom_point()+geom_line()+
+  facet_wrap(~glass,)+
+  theme_minimal()+
+  theme(legend.position = "none")
+
+
+  
+library(gt)
+library(knitr)
+library(DT)
+  
+  lcf_df %>% 
+    filter(number != c(1,2,3)) %>% 
+    filter(structure =="LCF") %>% 
+    select(angle, glass, Y)  %>% 
+    pivot_wider(names_from = glass, values_from = Y) %>% 
+    mutate(across(c(2:(ncol(.))), ~.x/.x[1]*100)) %>% 
+    pivot_longer(-1, names_to = "glass", values_to = "transmittance") %>% 
+    mutate(position =substr(glass, 8, 13),
+           cell= substr(glass, 1, 6)) %>% 
+    filter(angle %in% c(35)) %>% 
+    group_by(glass, angle) %>% 
+    summarise(cutoff=round(transmittance,1)) %>% 
+    arrange(cutoff) %>%
+    pivot_wider(names_from = angle, values_from = cutoff) %>% 
+    arrange(`35`) %>% 
+    mutate(CMP_TIME = case_when(
+      str_detect(glass, "19") ~ "30",
+      str_detect(glass, "20") ~ "45",
+      str_detect(glass, "21") ~ "55",
+      str_detect(glass, "22") ~ "75",
+      TRUE ~ "NA"
+    )) %>% 
+    mutate(BM_Tk = case_when(
+      str_detect(glass, "22") ~ "4.5㎛ x 2회",
+      TRUE ~ "3.5㎛ x 2회",
+    )) %>% 
+    mutate(분판내_위치 = case_when(
+      str_detect(glass, "B02|B03") ~ "중앙",
+      str_detect(glass, "01") ~ "상단",
+      str_detect(glass, "04") ~ "하단",
+      str_detect(glass, "A02|A03") ~ "좌측",
+      TRUE ~ "우측"
+    )) %>% clipr::write_clip()
+
+  lcf_df %>% 
+    filter(number != c(1,2,3)) %>% 
+    filter(structure =="SPM") %>% 
+    select(angle, glass, Y)  %>% 
+    pivot_wider(names_from = glass, values_from = Y) %>% 
+    mutate(across(c(2:(ncol(.))), ~.x/.x[1]*100)) %>% 
+    pivot_longer(-1, names_to = "glass", values_to = "transmittance") %>% 
+    mutate(position =substr(glass, 8, 13),
+           cell= substr(glass, 1, 6)) %>% 
+    filter(angle %in% c(30, 48)) %>% 
+    group_by(glass, angle) %>% 
+    summarise(cutoff=round(transmittance,1)) %>% 
+    arrange(cutoff) %>% 
+    pivot_wider(names_from = angle, values_from = cutoff) %>% 
+    arrange(`48`) %>% 
+    mutate(CMP_TIME = case_when(
+      str_detect(glass, "19") ~ "30",
+      str_detect(glass, "20") ~ "45",
+      str_detect(glass, "21") ~ "55",
+      str_detect(glass, "22") ~ "75",
+      TRUE ~ "NA"
+    )) %>% 
+    mutate(BM_Tk = case_when(
+      str_detect(glass, "22") ~ "4.5㎛ x 2회",
+      TRUE ~ "3.5㎛ x 2회",
+    )) %>% 
+    mutate(분판내_위치 = case_when(
+      str_detect(glass, "B02|B03") ~ "중앙",
+      str_detect(glass, "01") ~ "상단",
+      str_detect(glass, "04") ~ "하단",
+      str_detect(glass, "A02|A03") ~ "좌측",
+      TRUE ~ "우측"
+    )) %>% clipr::write_clip()
+  
+  
+    
+  http://127.0.0.1:16269/graphics/plot_zoom_png?width=1080&height=694
+
+
+head(lcf_df )
+
+
+lcf_df %>% 
+  filter((glass =="19_B01_center" & structure == "public")  | (glass =="19_B01_left")) %>% 
+  select(angle, structure, Y)  %>% 
+  pivot_wider(names_from = structure, values_from = Y) %>% 
+  mutate(across(c(2:(ncol(.))), ~.x/.x[1]*100)) %>% 
+  pivot_longer(-1, names_to = "structure", values_to = "transmittance") %>% 
+  mutate(structure = fct_reorder(structure, transmittance, .fun = median)) %>% 
+  ggplot(aes(x=angle, y=transmittance, col=structure))+
+  geom_point()+geom_line()+
+  theme_bw()+
+  geom_vline(xintercept=48, linetype='dashed', color='red', size=0.5)+
+  geom_vline(xintercept=30, linetype='dashed', color='red', size=0.5)+
+  geom_vline(xintercept=35, linetype='dashed', color='blue', size=0.5)+
+  labs(title = "양산라인 Panel 광특성",
+       y="정면 대비 휘도(%)", 
+       x="시야각 (degree)",
+       subtitle = "Louver 깊이 20~25㎛ / LRF두께 40㎛")+
+  geom_label(data = . %>% filter(angle %in% c(30, 35, 48)), mapping=aes(label=round(transmittance,1)))
+ 
+
