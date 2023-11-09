@@ -1,0 +1,151 @@
+<html>
+
+<head>
+<title>Title</title>
+</head>
+
+<body>
+
+<p>This is an R HTML document. When you click the <b>Knit HTML</b> button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
+
+<!--begin.rcode
+rm(list=ls())
+.libPaths()
+library(tidyverse)
+getwd()
+setwd("D:/Non_Documents/ai/r")
+library(patchwork)
+library(showtext)
+
+showtext_auto()
+
+df <- tibble::tribble(
+  ~no, ~패턴유형, ~LRF높이, ~Dry깊이, ~Dishing깊이, ~BM채움,  ~CD,    ~원장위치,    ~분판위치, ~CMP,
+   1L,  "세로",  35.18,   21.3,         2.7, 18.57, 4.65, "Bottom", "Bottom",  30L,
+   2L,  "세로",  35.18,   19.9,         3.3, 16.69, 4.55,       NA,       NA,  30L,
+   3L,  "가로",  35.48,   22.2,         1.3, 20.93, 4.72,       NA,       NA,  30L,
+   4L,  "가로",  35.48,   22.1,         1.1, 21.02, 4.59,       NA,       NA,  30L,
+   5L,  "세로",  37.66,   29.3,        10.9,  18.4, 5.23, "Center", "Center",  30L,
+   6L,  "세로",  37.66,   29.3,        13.9,  15.4, 6.17,       NA,       NA,  30L,
+   7L,  "가로",   37.7,   27.1,           9,  18.1, 4.15,       NA,       NA,  30L,
+   8L,  "가로",   37.7,   27.3,         9.2, 18.02, 4.05,       NA,       NA,  30L,
+   9L,  "세로",  37.45,   25.7,         2.1, 23.61, 4.49,    "Top",    "Top",  45L,
+  10L,  "세로",  37.45,   23.5,           4, 19.56, 4.59,       NA,       NA,  45L,
+  11L,  "가로",  37.36,   23.4,         1.4, 22.04, 4.32,       NA,       NA,  45L,
+  12L,  "가로",  37.36,   24.2,         1.3,  22.9, 4.22,       NA,       NA,  45L,
+  13L,  "세로",  35.26,   25.3,           3, 22.38, 4.96,  "Right", "Bottom",  45L,
+  14L,  "세로",  35.26,   24.2,        11.2, 12.95, 4.69,       NA,       NA,  45L,
+  15L,  "가로",  37.92,   24.9,         7.4, 17.55, 4.82,       NA,       NA,  45L,
+  16L,  "가로",  37.92,   24.4,         7.6, 16.73, 4.45,       NA,       NA,  45L,
+  17L,  "세로",  36.38,   15.7,         0.3, 15.36, 4.76, "Middle", "Center",  55L,
+  18L,  "세로",  36.38,   19.2,         2.1, 17.07, 4.72,       NA,       NA,  55L,
+  19L,  "가로",  37.27,   15.9,         1.1, 14.85, 4.55,       NA,       NA,  55L,
+  20L,  "가로",  37.27,     16,         1.1,  14.9, 4.62,       NA,       NA,  55L,
+  21L,  "세로",  36.72,     25,         1.4, 23.67, 4.32, "Middle", "Center",  75L,
+  22L,  "세로",  36.72,   24.6,         2.2, 22.39, 5.13,       NA,       NA,  75L,
+  23L,  "가로",  37.49,     25,         1.8, 23.15, 4.49,       NA,       NA,  75L,
+  24L,  "가로",  37.49,   24.2,         1.7, 22.51, 4.25,       NA,       NA,  75L
+  ) 
+ 
+
+df %>% fill(c(원장위치, 분판위치), .direction = "down") %>% 
+  mutate(BM코팅 = c(rep("3.5x2회",20), rep("4.5x2회",4))) %>% 
+  mutate(원장위치 = factor(원장위치, levels=c("Top", "Middle", "Center", "Right", "Bottom"))) %>% 
+  ggplot(aes(x=Dry깊이, y=Dishing깊이, col=원장위치, shape = 패턴유형, size = BM코팅))+geom_point()+
+  #geom_smooth(se=F)+
+  scale_x_continuous(limits = c(15, 30), breaks = c(15:30))+
+  scale_y_continuous(limits = c(0, 15), breaks = c(0:15))+
+  labs(title = "12.3 9E DRY ETCH 깊이에 따른 BM 미채움 상관관계",
+       x="Louver 깊이(DRY ETCH) [㎛]", y="BM 미채움 깊이[㎛]",
+       subtitle = "2nd Dry etch time = 2000s", 
+       caption = "Auto PA Choi Pro")+
+  theme_bw()
+
+
+df %>% fill(c(원장위치, 분판위치), .direction = "down") %>% 
+  mutate(BM코팅 = c(rep("3.5x2회",20), rep("4.5x2회",4))) %>% 
+  mutate(원장위치 = factor(원장위치, levels=c("Top", "Middle", "Center", "Right", "Bottom"))) %>% 
+  ggplot(aes(x=Dry깊이*CD, y=BM채움, col=원장위치, shape = 패턴유형, size = BM코팅))+geom_point()+
+  #geom_smooth(se=F)+
+  #scale_x_continuous(limits = c(15, 30), breaks = c(15:30))+
+  #scale_y_continuous(limits = c(15, 30), breaks = c(15:30))+
+  labs(title = "12.3 9E DRY ETCH 깊이에 따른 BM 채움 깊이 상관관계",
+       subtitle = "2nd Dry etch time = 2000s", 
+       caption = "Auto PA Choi Pro")+
+  theme_bw()
+
+
+
+df %>% fill(c(원장위치, 분판위치), .direction = "down") %>% 
+  mutate(BM코팅 = c(rep("3.5x2회",20), rep("4.5x2회",4))) %>% 
+  mutate(원장위치 = factor(원장위치, levels=c("Top", "Middle", "Center", "Right", "Bottom"))) %>% 
+  ggplot(aes(x=Dry깊이, y=CD, col=원장위치, shape = 패턴유형, size = BM코팅))+geom_point()+
+  #geom_smooth(se=F)+
+  #scale_x_continuous(limits = c(15, 30), breaks = c(15:30))+
+  #scale_y_continuous(limits = c(15, 30), breaks = c(15:30))+
+  labs(title = "12.3 9E DRY ETCH 깊이와 Louver CD 상관관계",
+       subtitle = "2nd Dry etch time = 2000s", 
+       caption = "Auto PA Choi Pro")+
+  theme_bw()
+
+
+
+
+
+df %>% fill(c(원장위치, 분판위치), .direction = "down") %>% 
+  mutate(BM코팅 = c(rep("3.5x2회",20), rep("4.5x2회",4))) %>% 
+  mutate(원장위치 = factor(원장위치, levels=c("Top", "Middle", "Center", "Right", "Bottom"))) %>% 
+  ggplot(aes(x=Dry깊이, y=Dishing깊이, col=원장위치, shape = 패턴유형, size = BM코팅))+geom_point()+
+  #geom_smooth(se=F)+
+  scale_x_continuous(limits = c(15, 30), breaks = c(15:30))+
+  scale_y_continuous(limits = c(0, 15), breaks = c(0:15))+
+  labs(title = "12.3 9E DRY ETCH 깊이에 따른 BM 미채움 상관관계",
+       subtitle = "2nd Dry etch time = 2000s", 
+       caption = "Auto PA Choi Pro")+
+  theme_bw()
+
+
+
+
+
+df %>% fill(c(원장위치, 분판위치), .direction = "down") %>% 
+  mutate(BM코팅 = c(rep("3.5x2회",20), rep("4.5x2회",4))) %>% 
+  mutate(분판위치= factor(분판위치, levels=c ("Top", "Center", "Bottom")) ) %>% 
+  ggplot(aes(x=CMP, y=LRF높이, col = 분판위치, shape=BM코팅, size=2))+geom_point()+
+  scale_x_continuous(limits = c(30, 80), breaks = c(30, 40, 50, 60, 70, 80))  +
+  scale_y_continuous(limits = c(30, 40), breaks = c(30:40))  +
+  theme_minimal()+
+  labs(title = "12.3 9E CMP시간에 따른 LRF 높이 상관관계",
+       x="CMP 시간(분)",
+       subtitle = "2nd Dry etch time = 2000s", 
+       caption = "Auto PA Choi Pro")
+
+
+
+
+
+
+df %>% fill(c(원장위치, 분판위치), .direction = "down") %>% 
+  mutate(BM코팅 = c(rep("3.5x2회",20), rep("4.5x2회",4))) %>% 
+  mutate(분판위치= factor(분판위치, levels=c ("Top", "Center", "Bottom")) ) %>% 
+  ggplot(aes(x=Dry깊이, y=Dishing깊이, shape = 패턴유형, col = 분판위치, size=BM코팅))+geom_point()+
+  #geom_smooth(se=F)+
+  scale_x_continuous(limits = c(15, 30), breaks = c(15:30))+
+  scale_y_continuous(limits = c(0, 15), breaks = c(0:15))+
+  theme_minimal()+
+  labs(title = "12.3 9E DRY ETCH 깊이에 따른 BM 미채움 상관관계",
+       subtitle = "2nd Dry etch time = 2000s", 
+       caption = "Auto PA Choi Pro")+
+  theme_bw()
+
+
+end.rcode-->
+
+<p>You can also embed plots, for example:</p>
+
+<!--begin.rcode fig.width=7, fig.height=6
+plot(cars)
+end.rcode-->
+
+</body>
+</html>
